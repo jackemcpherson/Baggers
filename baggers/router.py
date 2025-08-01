@@ -14,11 +14,6 @@ router = APIRouter()
 @router.post("/baggers/", response_model=schemas.Bagger)
 def create_bagger(bagger: schemas.BaggerCreate, db: Session = Depends(get_db)):
     """Create a new bagger"""
-    # Check if membership number already exists
-    db_bagger = crud.get_bagger_by_membership(db, membership_no=bagger.membershipNo)
-    if db_bagger:
-        raise HTTPException(status_code=422, detail="Membership number already registered")
-    
     try:
         return crud.create_bagger(db=db, bagger=bagger)
     except IntegrityError:
@@ -49,11 +44,6 @@ def update_bagger(bagger_id: int, bagger: schemas.BaggerCreate, db: Session = De
     db_bagger = crud.get_bagger(db, bagger_id=bagger_id)
     if db_bagger is None:
         raise HTTPException(status_code=404, detail="Bagger not found")
-    
-    # Check if new membership number conflicts with another bagger
-    existing_bagger = crud.get_bagger_by_membership(db, membership_no=bagger.membershipNo)
-    if existing_bagger and existing_bagger.id != bagger_id:
-        raise HTTPException(status_code=422, detail="Membership number already registered")
     
     try:
         return crud.update_bagger(db=db, bagger_id=bagger_id, bagger=bagger)

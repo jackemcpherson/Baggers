@@ -174,7 +174,7 @@ Baggers/
 ├── pyproject.toml          # Project configuration
 ├── uv.lock                 # Dependency lock file
 ├── README.md               # This file
-├── REQUIREMENTS.md         # Original requirements
+├── DESIGN.md               # Original design specification
 └── IMPLEMENTATION.md       # Implementation plan
 ```
 

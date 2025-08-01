@@ -35,10 +35,10 @@ def update_bagger(db: Session, bagger_id: int, bagger: schemas.BaggerCreate):
     """Update an existing bagger"""
     db_bagger = db.query(models.Bagger).filter(models.Bagger.id == bagger_id).first()
     if db_bagger:
-        db_bagger.name = bagger.name
-        db_bagger.membershipNo = bagger.membershipNo
-        db_bagger.emailAddress = bagger.emailAddress
-        db_bagger.phoneNumber = bagger.phoneNumber
+        # Get data from the Pydantic model as a dictionary
+        update_data = bagger.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(db_bagger, key, value)
         db.commit()
         db.refresh(db_bagger)
     return db_bagger
