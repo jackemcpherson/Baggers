@@ -53,7 +53,6 @@ def test_get_bagger_not_found(db):
 
 def test_get_baggers(db):
     """Test retrieving all baggers"""
-    # Create multiple baggers
     bagger1 = schemas.BaggerCreate(name="User 1", membershipNo="AFL001")
     bagger2 = schemas.BaggerCreate(name="User 2", membershipNo="AFL002")
 
@@ -81,14 +80,12 @@ def test_get_bagger_by_membership(db):
 
 def test_update_bagger(db):
     """Test updating an existing bagger"""
-    # Create a bagger
     original_data = schemas.BaggerCreate(name="Original Name", membershipNo="AFL555")
     created_bagger = crud.create_bagger(db=db, bagger=original_data)
 
-    # Update the bagger
     update_data = schemas.BaggerCreate(
         name="Updated Name",
-        membershipNo="AFL555",  # Keep same membership number
+        membershipNo="AFL555",
         emailAddress="updated@example.com",
         phoneNumber="0400000000",
     )
@@ -114,13 +111,11 @@ def test_delete_bagger(db):
     bagger_data = schemas.BaggerCreate(name="Delete Me", membershipNo="AFL777")
     created_bagger = crud.create_bagger(db=db, bagger=bagger_data)
 
-    # Delete the bagger
     deleted_bagger = crud.delete_bagger(db=db, bagger_id=created_bagger.id)
 
     assert deleted_bagger.id == created_bagger.id
     assert deleted_bagger.name == "Delete Me"
 
-    # Verify it's actually deleted
     result = crud.get_bagger(db=db, bagger_id=created_bagger.id)
     assert result is None
 
@@ -134,13 +129,9 @@ def test_delete_bagger_not_found(db):
 def test_unique_membership_constraint(db):
     """Test that membership numbers must be unique"""
     bagger1 = schemas.BaggerCreate(name="First User", membershipNo="AFL123")
-    bagger2 = schemas.BaggerCreate(
-        name="Second User", membershipNo="AFL123"  # Same membership number
-    )
+    bagger2 = schemas.BaggerCreate(name="Second User", membershipNo="AFL123")
 
-    # First creation should succeed
     crud.create_bagger(db=db, bagger=bagger1)
 
-    # Second creation should fail due to unique constraint
     with pytest.raises(IntegrityError):
         crud.create_bagger(db=db, bagger=bagger2)

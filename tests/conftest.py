@@ -8,7 +8,6 @@ from sqlalchemy.orm import sessionmaker
 from baggers.database import Base, get_db
 from baggers.main import app
 
-# Use separate test database file for each test run
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_baggers.db"
 
 engine = create_engine(
@@ -18,7 +17,11 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 
 def override_get_db():
-    """Override database dependency for testing"""
+    """Override database dependency for testing.
+
+    Yields:
+        Session: Test database session.
+    """
     try:
         db = TestingSessionLocal()
         yield db
@@ -28,7 +31,11 @@ def override_get_db():
 
 @pytest.fixture
 def db():
-    """Create a fresh database for each test"""
+    """Create a fresh database for each test.
+
+    Yields:
+        Session: Isolated test database session.
+    """
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     try:
@@ -40,7 +47,14 @@ def db():
 
 @pytest.fixture
 def client(db):
-    """Create a test client with database dependency override"""
+    """Create a test client with database dependency override.
+
+    Args:
+        db: Database session fixture.
+
+    Yields:
+        TestClient: FastAPI test client with test database.
+    """
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as c:
         yield c
@@ -49,8 +63,10 @@ def client(db):
 
 @pytest.fixture(scope="session", autouse=True)
 def cleanup_test_db():
-    """Clean up test database file after all tests"""
+    """Clean up test database file after all tests.
+
+    Automatically removes test database file at session end.
+    """
     yield
-    # Clean up the test database file
     if os.path.exists("test_baggers.db"):
         os.remove("test_baggers.db")

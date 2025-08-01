@@ -36,11 +36,9 @@ def test_create_bagger_duplicate_membership(client):
     """Test creating bagger with duplicate membership number returns 422"""
     bagger_data = {"name": "First User", "membershipNo": "AFL555"}
 
-    # Create first bagger
     response1 = client.post("/baggers/", json=bagger_data)
     assert response1.status_code == 200
 
-    # Try to create second bagger with same membership number
     duplicate_data = {"name": "Second User", "membershipNo": "AFL555"}
     response2 = client.post("/baggers/", json=duplicate_data)
 
@@ -50,7 +48,6 @@ def test_create_bagger_duplicate_membership(client):
 
 def test_create_bagger_invalid_data(client):
     """Test creating bagger with invalid data returns 422"""
-    # Missing required field 'name'
     invalid_data = {"membershipNo": "AFL999"}
 
     response = client.post("/baggers/", json=invalid_data)
@@ -67,7 +64,6 @@ def test_get_baggers_empty(client):
 
 def test_get_baggers_with_data(client):
     """Test GET /baggers/ with existing baggers"""
-    # Create two baggers
     bagger1 = {"name": "User 1", "membershipNo": "AFL001"}
     bagger2 = {"name": "User 2", "membershipNo": "AFL002"}
 
@@ -85,12 +81,10 @@ def test_get_baggers_with_data(client):
 
 def test_get_bagger_by_id_success(client):
     """Test GET /baggers/{id} with valid ID"""
-    # Create a bagger
     bagger_data = {"name": "Test User", "membershipNo": "AFL123"}
     create_response = client.post("/baggers/", json=bagger_data)
     created_bagger = create_response.json()
 
-    # Get the bagger by ID
     response = client.get(f"/baggers/{created_bagger['id']}")
 
     assert response.status_code == 200
@@ -110,12 +104,10 @@ def test_get_bagger_by_id_not_found(client):
 
 def test_update_bagger_success(client):
     """Test PUT /baggers/{id} with valid data"""
-    # Create a bagger
     original_data = {"name": "Original Name", "membershipNo": "AFL456"}
     create_response = client.post("/baggers/", json=original_data)
     created_bagger = create_response.json()
 
-    # Update the bagger
     update_data = {
         "name": "Updated Name",
         "membershipNo": "AFL456",
@@ -145,7 +137,6 @@ def test_update_bagger_not_found(client):
 
 def test_update_bagger_duplicate_membership(client):
     """Test PUT /baggers/{id} with duplicate membership number returns 422"""
-    # Create two baggers
     bagger1_data = {"name": "User 1", "membershipNo": "AFL111"}
     bagger2_data = {"name": "User 2", "membershipNo": "AFL222"}
 
@@ -155,10 +146,9 @@ def test_update_bagger_duplicate_membership(client):
     create_response1.json()
     bagger2 = create_response2.json()
 
-    # Try to update bagger2 with bagger1's membership number
     update_data = {
         "name": "User 2 Updated",
-        "membershipNo": "AFL111",  # This is already taken by bagger1
+        "membershipNo": "AFL111",
     }
 
     response = client.put(f"/baggers/{bagger2['id']}", json=update_data)
@@ -169,13 +159,11 @@ def test_update_bagger_duplicate_membership(client):
 
 def test_update_bagger_invalid_data(client):
     """Test PUT /baggers/{id} with invalid data returns 422"""
-    # Create a bagger
     bagger_data = {"name": "Test User", "membershipNo": "AFL789"}
     create_response = client.post("/baggers/", json=bagger_data)
     created_bagger = create_response.json()
 
-    # Try to update with invalid data (missing required field)
-    invalid_update = {"membershipNo": "AFL999"}  # Missing 'name'
+    invalid_update = {"membershipNo": "AFL999"}
 
     response = client.put(f"/baggers/{created_bagger['id']}", json=invalid_update)
 
@@ -184,12 +172,10 @@ def test_update_bagger_invalid_data(client):
 
 def test_delete_bagger_success(client):
     """Test DELETE /baggers/{id} with valid ID"""
-    # Create a bagger
     bagger_data = {"name": "Delete Me", "membershipNo": "AFL888"}
     create_response = client.post("/baggers/", json=bagger_data)
     created_bagger = create_response.json()
 
-    # Delete the bagger
     response = client.delete(f"/baggers/{created_bagger['id']}")
 
     assert response.status_code == 200
@@ -197,7 +183,6 @@ def test_delete_bagger_success(client):
     assert data["id"] == created_bagger["id"]
     assert data["name"] == "Delete Me"
 
-    # Verify it's actually deleted
     get_response = client.get(f"/baggers/{created_bagger['id']}")
     assert get_response.status_code == 404
 
@@ -212,7 +197,6 @@ def test_delete_bagger_not_found(client):
 
 def test_api_workflow(client):
     """Test complete CRUD workflow"""
-    # Create
     create_data = {
         "name": "Workflow Test",
         "membershipNo": "AFL999",
@@ -222,12 +206,10 @@ def test_api_workflow(client):
     assert create_response.status_code == 200
     bagger = create_response.json()
 
-    # Read single
     get_response = client.get(f"/baggers/{bagger['id']}")
     assert get_response.status_code == 200
     assert get_response.json()["name"] == "Workflow Test"
 
-    # Update
     update_data = {
         "name": "Updated Workflow Test",
         "membershipNo": "AFL999",
@@ -240,15 +222,12 @@ def test_api_workflow(client):
     assert updated_bagger["name"] == "Updated Workflow Test"
     assert updated_bagger["phoneNumber"] == "0411111111"
 
-    # Read all
     list_response = client.get("/baggers/")
     assert list_response.status_code == 200
     assert len(list_response.json()) == 1
 
-    # Delete
     delete_response = client.delete(f"/baggers/{bagger['id']}")
     assert delete_response.status_code == 200
 
-    # Verify deletion
     final_get = client.get(f"/baggers/{bagger['id']}")
     assert final_get.status_code == 404
