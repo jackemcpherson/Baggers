@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+
 from . import models, schemas
 
 
@@ -14,7 +15,11 @@ def get_baggers(db: Session, skip: int = 0, limit: int = 100):
 
 def get_bagger_by_membership(db: Session, membership_no: str):
     """Get a bagger by membership number"""
-    return db.query(models.Bagger).filter(models.Bagger.membershipNo == membership_no).first()
+    return (
+        db.query(models.Bagger)
+        .filter(models.Bagger.membershipNo == membership_no)
+        .first()
+    )
 
 
 def create_bagger(db: Session, bagger: schemas.BaggerCreate):
@@ -23,7 +28,7 @@ def create_bagger(db: Session, bagger: schemas.BaggerCreate):
         name=bagger.name,
         membershipNo=bagger.membershipNo,
         emailAddress=bagger.emailAddress,
-        phoneNumber=bagger.phoneNumber
+        phoneNumber=bagger.phoneNumber,
     )
     db.add(db_bagger)
     db.commit()

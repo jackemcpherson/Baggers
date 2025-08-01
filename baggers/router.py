@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
 from typing import List
 
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
 from . import crud, models, schemas
-from .database import SessionLocal, engine, get_db
+from .database import engine, get_db
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -18,7 +19,9 @@ def create_bagger(bagger: schemas.BaggerCreate, db: Session = Depends(get_db)):
         return crud.create_bagger(db=db, bagger=bagger)
     except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=422, detail="Membership number already registered")
+        raise HTTPException(
+            status_code=422, detail="Membership number already registered"
+        )
 
 
 @router.get("/baggers/", response_model=List[schemas.Bagger])
@@ -37,19 +40,23 @@ def read_bagger(bagger_id: int, db: Session = Depends(get_db)):
     return db_bagger
 
 
-@router.put("/baggers/{bagger_id}", response_model=schemas.Bagger) 
-def update_bagger(bagger_id: int, bagger: schemas.BaggerCreate, db: Session = Depends(get_db)):
+@router.put("/baggers/{bagger_id}", response_model=schemas.Bagger)
+def update_bagger(
+    bagger_id: int, bagger: schemas.BaggerCreate, db: Session = Depends(get_db)
+):
     """Update an existing bagger"""
     # Check if bagger exists
     db_bagger = crud.get_bagger(db, bagger_id=bagger_id)
     if db_bagger is None:
         raise HTTPException(status_code=404, detail="Bagger not found")
-    
+
     try:
         return crud.update_bagger(db=db, bagger_id=bagger_id, bagger=bagger)
     except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=422, detail="Membership number already registered")
+        raise HTTPException(
+            status_code=422, detail="Membership number already registered"
+        )
 
 
 @router.delete("/baggers/{bagger_id}", response_model=schemas.Bagger)
@@ -58,5 +65,5 @@ def delete_bagger(bagger_id: int, db: Session = Depends(get_db)):
     db_bagger = crud.get_bagger(db, bagger_id=bagger_id)
     if db_bagger is None:
         raise HTTPException(status_code=404, detail="Bagger not found")
-    
+
     return crud.delete_bagger(db=db, bagger_id=bagger_id)
